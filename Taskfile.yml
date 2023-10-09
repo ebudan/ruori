@@ -13,11 +13,15 @@ tasks:
       BRANCH:
         sh: git name-rev --name-only HEAD
       CHARTS:
-        sh: find . -mindepth 2 -maxdepth 2  -type f -name "Chart.yaml" -exec dirname "{}" \;
+        sh: find . -mindepth 2 -maxdepth 2  -type f -name "Chart.yaml" -exec dirname "{}" \; | xargs basename
     cmds:
-      - git checkout gh-pages
       - for: CHARTS
         cmd: helm package -d charts {{ .ITEM }}
+      - git stash
+      - git checkout gh-pages
+      - git stash pop
+      - for: CHARTS
+        cmd: git add charts/{{.ITEM}}
       - git push
       - git checkout {{ .BRANCH }}
 
