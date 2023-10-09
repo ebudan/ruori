@@ -54,7 +54,6 @@ Here, the following variables are mandatory:
 Here we assume a Traefik front-end taking care of rproxy/LetsEncrypt details. See the [SES project](https://github.com/base/ses-cli) for a sample setup.  
 This chart is not SES-dependent, it just uses Traefik in the same way to route host based traffic to the container.
 
-For Helm documentation, see [Helm docs](https://helm.sh/docs/). The template language is Go augmented with [slim-sprig](https://go-task.github.io/slim-sprig/). 
+For Helm documentation, see [Helm docs](https://helm.sh/docs/). The [template language](https://helm.sh/docs/chart_template_guide/functions_and_pipelines/) is more or less Go templates augmented with [sprig](https://masterminds.github.io/sprig/). 
 
-This is a first attempt at a Helm chart - it is not very dynamic, especially with the networking aspect, and it has not been pared 
-down to essentials or cleaned up. Improvements TBD.
+This chart is based on the Helm default generated model, adding secrets and networking to communicate with a Traefik front end. Persistent storage mounts in particular will require more work. 
