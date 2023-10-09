@@ -2,12 +2,6 @@ version: '3'
 
 # See https://taskfile.dev/usage/
 
-env:
-  OCI_EXE: '{{.OCI_EXE | default "podman"}}'
-vars:
-  CHARTS: 
-    - tnssca
-
 tasks:
   default:
     cmds:
@@ -18,9 +12,12 @@ tasks:
     vars:
       BRANCH:
         sh: git name-rev --name-only HEAD
+      CHARTS:
+        sh: find . -mindepth 2 -maxdepth 2  -type f -name "Chart.yaml" -exec dirname "{}" \;
     cmds:
       - git checkout gh-pages
       - for: CHARTS
         cmd: helm package -d charts {{ .ITEM }}
+      - git push
       - git checkout {{ .BRANCH }}
 
