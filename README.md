@@ -17,7 +17,7 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 
 Once Helm has been set up correctly, add the repo as follows:
 
-  helm repo add ruori https://ebudan.github.io/ruori/
+    helm repo add ruori https://ebudan.github.io/ruori/
 
 Check available charts with `helm search repo ruori`. 
 Check documentation under `./resources` for the chart. 
