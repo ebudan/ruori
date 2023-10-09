@@ -1,0 +1,196 @@
+{{/*
+A targeted network policy, ingress, and Traefik notification setup.
+This template might benefit of generalization, perhaps with input
+from the Helm default model ingress.yaml.
+*/}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: allow-dns
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: allow-in-local
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          instance: {{ include "tnssca.fullname" . }}
+  podSelector:
+    matchLabels:
+      instance: {{ include "tnssca.fullname" . }}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: allow-out-local
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          instance: {{ include "tnssca.fullname" . }}
+  podSelector:
+    matchLabels:
+      instance: {{ include "tnssca.fullname" . }}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: deny-in
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: deny-out
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: egress-world
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+  podSelector:
+    matchLabels:
+      instance: {{ include "tnssca.fullname" . }}
+      ses_allow_egress: world
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: ingress-proxy
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: traefik-ingress
+    - podSelector:
+        matchLabels:
+          app: traefik
+          instance: {{ include "tnssca.fullname" . }}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          ingress-controller: traefik
+    - podSelector:
+        matchLabels:
+          app: traefik
+          instance: {{ include "tnssca.fullname" . }}
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: https
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: proxy-{{ include "tnssca.fullname" . }}
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  entryPoints:
+  - https
+  routes:
+  - kind: Rule
+    match: Host(`{{.Values.deplEnv.HOST}}`)
+    services:
+    - name: {{ include "tnssca.fullname" . }}
+      namespace: {{ include "tnssca.fullname" . }}
+      port: {{.Values.service.port}}
+  tls:
+    certResolver: default
+    options:
+      name: tlsoptions
+      namespace: {{ include "tnssca.fullname" . }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSOption
+metadata:
+  annotations:
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+  name: tlsoptions
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  cipherSuites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  - TLS_AES_256_GCM_SHA384
+  - TLS_AES_128_GCM_SHA256
+  - TLS_CHACHA20_POLY1305_SHA256
+  - TLS_FALLBACK_SCSV
+  curvePreferences:
+  - CurveP521
+  - CurveP384
+  minVersion: VersionTLS12

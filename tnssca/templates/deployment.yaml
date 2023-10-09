@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tnssca.fullname" . }}
+  labels:
+    {{- include "tnssca.labels" . | nindent 4 }}
+  namespace: {{ include "tnssca.fullname" . }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "tnssca.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "tnssca.selectorLabels" . | nindent 8 }}
+        ses_allow_egress: world
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "tnssca.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          env:
+{{- range $k, $v := .Values.appEnv }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+{{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+{{- if .Values.mount.secrets }}
+          - mountPath: /etc/{{ include "tnssca.fullname" . }}/secrets
+            name: volsecrets
+            readOnly: true
+{{- end }}
+{{- range $mount := .Values.mount.dirs }}
+{{- $nft := (split ":" $mount) }}
+          - mountPath: {{ $nft._2 | trim }}
+            name: {{ $nft._0 | trim }}
+            readOnly: false 
+{{- end }}
+      volumes:
+{{- if .Values.mount.secrets }}
+      - name: volsecrets
+        secret:
+          secretName: service-secrets
+{{- end }}
+{{- range $mount := .Values.mount.dirs }}
+{{- $nft := split ":" $mount }}
+      - name: {{ $nft._0 | trim }}
+        hostPath:
+          path: {{ $nft._1 | trim }}
+          type: Directory 
+{{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

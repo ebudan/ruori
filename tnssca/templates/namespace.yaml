@@ -1,0 +1,18 @@
+# {{.Values.image.repository}}:{{.Values.image.tag}} deployment {{.Values.fullnameOverride}} built on {{ now | date "2006-01-02T15:04:05-0700" }}
+# See https://github.com/basen/lstm/trainn-ui/resources/helm
+{{ $name := .Values.nameOverride | required ".Values.nameOverride is required." -}}
+{{ $name := .Values.fullnameOverride | required ".Values.fullnameOverride is required." -}}
+{{ $name := .Values.deplEnv.ADMIN | required ".Values.deplEnv.ADMIN is required." -}}
+{{ $name := .Values.deplEnv.HOST | required ".Values.deplEnv.HOST is required." -}}
+{{ $name := .Values.image.repository | required ".Values.image.repository is required." -}}
+{{ $name := .Values.image.tag | required ".Values.image.tag is required." -}}
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    admin: {{ .Values.deplEnv.ADMIN }}
+  labels:
+    instance: {{ include "tnssca.fullname" . }}
+    name: {{ include "tnssca.fullname" . }}
+  name: {{ include "tnssca.fullname" . }}

@@ -1,0 +1,73 @@
+version: '3'
+
+# See https://taskfile.dev/usage/
+
+# Invocation example:
+# ADMIN=ebu@basen.net \
+# HOST=ses-trainn.basen.com \
+# INSTANCE=trainn1 \
+# DATAPATH=/data/services/trainn-20231005 \
+# IMG_NAME=quay.io/basen/lm-trainn \
+# IMG_VERSION=v1.0.0 \
+# task
+
+env:
+  OCI_EXE: '{{.OCI_EXE | default "podman"}}'
+vars:
+  CHART: tnssca
+
+tasks:
+  default:
+    cmds:
+      - task: generate-deployment
+
+  clean:
+    cmds:
+      - rm -rf {{.CHART}}/secrets
+
+  generate-deployment:
+    desc: Runs Helm to generate a K8s deployment descriptor for our app deployment.
+    vars: 
+      OUT:
+        sh: echo "{{.USER_WORKING_DIR}}/deploy-${INSTANCE}-$(date +%Y%m%dT%H%M%S%z).yaml"
+      PASSWDFILE: 'auth.txt'
+    requires:
+      vars: [INSTANCE,IMG_NAME,IMG_VERSION,ADMIN,HOST,DATAPATH]
+    cmds:
+      - echo "Generating $OUT..."
+      - task: generate-passwd
+        vars: { PASSWDFILE: '{{.PASSWDFILE}}', DIR: '{{.CHART}}/secrets' }
+      - >
+        helm template \
+          --set image.repository="{{.IMG_NAME}}" \
+          --set image.tag="{{.IMG_VERSION}}" \
+          --set nameOverride="{{.INSTANCE}}" \
+          --set fullnameOverride="{{.INSTANCE}}" \
+          --set mount.dirs="{ data:{{.DATAPATH}}:/usr/share/data }" \
+          --set mount.secrets="/etc/{{.INSTANCE}}/secrets" \
+          --set deplEnv.ADMIN={{.ADMIN}} \
+          --set deplEnv.HOST={{.HOST}} \
+          --set appEnv.APP_QUEUE_DIR="/usr/share/data" \
+          --set appEnv.APP_PASSWORDFILE="/etc/{{.INSTANCE}}/secrets/{{.PASSWDFILE}}" \
+          --set appEnv.APP_PORT=80 \
+          --set appEnv.APP_LOGLEVEL="debug" \
+          --set appEnv.APP_NOTLS="true" \
+          {{.INSTANCE}} ./{{.CHART}} >{{.OUT}}
+      - >
+        echo -e "Done. Remember to perform the following tasks:\n
+        - deploy {{.OUT}} on your cluster\n
+        - create $DEPL_DATAPATH on cluster host(s)\n
+        - register $DEPL_HOSTNAME at your DNS provider\n"
+
+# Note: you can set multiple mount.dirs:
+#       --set mount.dirs="{ data:{{.DATAPATH}}:/usr/share/data,data2:{{.DEPL_DATAPATH}}:/usr/share/data2 }" \
+
+  # Helm requires file globs to be under the chart.
+  # We dedicate {{.CHART}}/secrets for deploying those. Remember to clean.
+  generate-passwd:
+    desc: Generate a password file
+    status:
+      - test -f {{.CHART}}/secrets/{{ .PASSWDFILE }}
+    cmds:
+      - mkdir -p {{.CHART}}/secrets
+      - ./tools/genpasswd.sh {{.DIR}}/{{ .PASSWDFILE }}
