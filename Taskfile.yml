@@ -1,0 +1,26 @@
+version: '3'
+
+# See https://taskfile.dev/usage/
+
+env:
+  OCI_EXE: '{{.OCI_EXE | default "podman"}}'
+vars:
+  CHARTS: 
+    - tnssca
+
+tasks:
+  default:
+    cmds:
+      - task: generate-packages
+
+  generate-packages:
+    desc: Runs Helm for all chart dirs and commits results in artefact branch
+    vars:
+      BRANCH:
+        sh: git name-rev --name-only HEAD
+    cmds:
+      - git checkout gh-pages
+      - for: CHARTS
+        cmd: helm package -d charts {{ .ITEM }}
+      - git checkout {{ .BRANCH }}
+

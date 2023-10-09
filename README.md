@@ -5,6 +5,12 @@ Helm charts for prototype projects.
 ## Structure
 
 Each Helm chart ID resides in its own subdirectory. A `README-{id}.md` must be provided for usage examples.  
+
+To deploy an artefact:
+
+    git checkout gh-pages
+    helm package 
+
 Artefacts are generated with the [Chart Releaser](https://helm.sh/docs/howto/chart_releaser_action/) action under `./charts`.
 
 
