@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # A naive script for generating an authentication file with 
-# username:{sha256-encoded-passwd} lines. 
+# username:{sha256-encoded-passwd} lines for the tnssca chart. 
 
 # Check if filename is provided
 if [[ $# -eq 0 ]]; then

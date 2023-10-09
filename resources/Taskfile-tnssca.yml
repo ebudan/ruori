@@ -1,20 +1,29 @@
 version: '3'
 
-# See https://taskfile.dev/usage/
-
-# Invocation example:
-# ADMIN=ebu@basen.net \
-# HOST=ses-trainn.basen.com \
-# INSTANCE=trainn1 \
-# DATAPATH=/data/services/trainn-20231005 \
+#
+# Sample Taskfile for generating a deployment descriptor for quay.io/basen/lm-trainn, 
+# providing a node directory mount, a password file as a secret, and a number of 
+# required deployment ENV vars. 
+#
+# To generate a deployment 'myuniqueid':
+#
+# ADMIN=you@yours.net \
+# HOST=fqdn.company.com
+# INSTANCE=myuniqueid \
+# DATAPATH=/data/services/myuniqueid \
 # IMG_NAME=quay.io/basen/lm-trainn \
 # IMG_VERSION=v1.0.0 \
-# task
+# task -t Taskfile-tnssca.yml
+#
+#
+# See also: https://taskfile.dev/usage/
+#
+
 
 env:
   OCI_EXE: '{{.OCI_EXE | default "podman"}}'
 vars:
-  CHART: tnssca
+  CHART: ruori/tnssca
 
 tasks:
   default:

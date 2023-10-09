@@ -2,17 +2,13 @@
 
 Helm charts for prototype projects. 
 
+This project is configured to use the [Chart Releaser](https://helm.sh/docs/howto/chart_releaser_action/) to automatically
+update a Helm chart index published at [https://ebudan.github.io/ruori/](https://ebudan.github.io/ruori/). 
+
 ## Structure
 
-Each Helm chart ID resides in its own subdirectory. A `README-{id}.md` must be provided for usage examples.  
-
-To deploy an artefact:
-
-    git checkout gh-pages
-    helm package 
-
-Artefacts are generated with the [Chart Releaser](https://helm.sh/docs/howto/chart_releaser_action/) action under `./charts`.
-
+Each functional helm chart directory must reside in `./charts/`. The automated push action will regenerate
+the chart index. Please provide a `resources/README-chartname.md` to help use any complicated charts. 
 
 ## Usage
 
@@ -21,16 +17,14 @@ Helm's [documentation](https://helm.sh/docs) to get started.
 
 Once Helm has been set up correctly, add the repo as follows:
 
-  helm repo add ruori https://ebudan.github.io/ruori/helm-charts
+  helm repo add ruori https://ebudan.github.io/ruori/
 
-If you had already added this repo earlier, run `helm repo update` to retrieve
-the latest versions of the packages.  You can then run `helm search repo
-<alias>` to see the charts.
+Check available charts with `helm search repo ruori`. 
+Check documentation under `./resources` for the chart. 
 
-To install the <chart-name> chart:
+To generate a templated deployment, you will usually perform
 
-    helm install my-<chart-name> <alias>/<chart-name>
+    KEY=val helm myinstance ruori/chartname >k8s-deployment.yaml
 
-To uninstall the chart:
+Since the reusable templates require several variables, a Taskfile example will usually be provided. 
 
-    helm delete my-<chart-name>
