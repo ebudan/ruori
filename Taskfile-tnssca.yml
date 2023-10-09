@@ -23,7 +23,7 @@ tasks:
 
   clean:
     cmds:
-      - rm -rf {{.CHART}}/secrets
+      - rm -rf ./secrets
 
   generate-deployment:
     desc: Runs Helm to generate a K8s deployment descriptor for our app deployment.
@@ -31,12 +31,13 @@ tasks:
       OUT:
         sh: echo "{{.USER_WORKING_DIR}}/deploy-${INSTANCE}-$(date +%Y%m%dT%H%M%S%z).yaml"
       PASSWDFILE: 'auth.txt'
+      SECRETSDIR: 'secrets'
     requires:
       vars: [INSTANCE,IMG_NAME,IMG_VERSION,ADMIN,HOST,DATAPATH]
     cmds:
       - echo "Generating $OUT..."
       - task: generate-passwd
-        vars: { PASSWDFILE: '{{.PASSWDFILE}}', DIR: '{{.CHART}}/secrets' }
+        vars: { PASSWDFILE: '{{.PASSWDFILE}}', DIR: './{{.SECRETSDIR}}' }
       - >
         helm template \
           --set image.repository="{{.IMG_NAME}}" \
@@ -52,7 +53,8 @@ tasks:
           --set appEnv.APP_PORT=80 \
           --set appEnv.APP_LOGLEVEL="debug" \
           --set appEnv.APP_NOTLS="true" \
-          {{.INSTANCE}} ./{{.CHART}} >{{.OUT}}
+          --set-file secrets.auth\\.txt={{.SECRETSDIR}}/{{.PASSWDFILE}} \
+          {{.INSTANCE}} {{.CHART}} >{{.OUT}}
       - >
         echo -e "Done. Remember to perform the following tasks:\n
         - deploy {{.OUT}} on your cluster\n
@@ -67,7 +69,8 @@ tasks:
   generate-passwd:
     desc: Generate a password file
     status:
-      - test -f {{.CHART}}/secrets/{{ .PASSWDFILE }}
+      - test -f {{.DIR}}/{{ .PASSWDFILE }}
     cmds:
-      - mkdir -p {{.CHART}}/secrets
+      - mkdir -p {{.DIR}}
       - ./tools/genpasswd.sh {{.DIR}}/{{ .PASSWDFILE }}
+      - echo "Generated {{.DIR}}/{{.PASSWDFILE}}"

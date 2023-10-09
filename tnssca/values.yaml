@@ -90,7 +90,7 @@ tolerations: []
 affinity: {}
 
 # ADMIN, HOST are required.
-deplEnv: []
+deplEnv: {}
 #  ADMIN: 'undefined-env-admin'
 #  HOST: 'undefined-env-host'
 
@@ -101,7 +101,15 @@ appEnv:
   APP_NOTLS: "true"
   # Do not set APP_PASSWORDFILE - automated, due to secrets setup 
 
+# Specify any number of name:hostpath:nodepath to mount host directories.
+# Specify a location (nodepath) for secret file storage.
 mount:
   dirs: []
   secrets: ""
 
+# Any secret files you add will be made available in the secrets nodepath.
+# Example: ... --set-file secrets.passwd\\.txt=./deploy-secrets/auth.txt
+# will be available in dir Values.mount.secrets as passwd.txt. 
+# Note the dot escape.
+# Also note that --set will not be able to refer to the file contents later. 
+secrets: {}
