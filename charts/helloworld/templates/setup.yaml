@@ -24,6 +24,7 @@ spec:
     protocol: TCP
     targetPort: {{ .Values.port }}
   selector:
+    # NTS: must match pod spec.template.metadata.labels, not just deployment metadata.labels.
     instance: instance-{{ .Values.name }}
     deplid: deployment1
 ---
@@ -41,7 +42,9 @@ spec:
   replicas: 1
   selector:
     matchLabels:
+      # NTS: must decisively match spec.template.metadata.labels
       instance: instance-{{ .Values.name }}
+      deplid: deployment1
       podid: mywebcont
       # not used for selection:
       #name: pod-{{ .Values.name }}
@@ -52,6 +55,7 @@ spec:
         admin: ebu@basen.net
       labels:
         instance: instance-{{ .Values.name }}
+        deplid: deployment1
         podid: mywebcont
         name: pod-{{ .Values.name }}
         ses_allow_egress: world
