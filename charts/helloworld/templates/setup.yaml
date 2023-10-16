@@ -1,0 +1,300 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+    name: ses-{{ .Values.name }}
+  name: ses-{{ .Values.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: webservice
+  namespace: ses-{{ .Values.name }}
+spec:
+  ports:
+  - port: {{ .Values.services.webservice.arbitraryport }}
+    protocol: TCP
+    targetPort: {{ .Values.port }}
+  selector:
+    instance: instance-{{ .Values.name }}
+    deplid: deployment1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+    deplid: deployment1
+  name: mywebappdepl
+  namespace: ses-{{ .Values.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+      podid: mywebcont
+      # not used for selection:
+      #name: pod-{{ .Values.name }}
+      #ses_allow_egress: world
+  template:
+    metadata:
+      annotations:
+        admin: ebu@basen.net
+      labels:
+        instance: instance-{{ .Values.name }}
+        podid: mywebcont
+        name: pod-{{ .Values.name }}
+        ses_allow_egress: world
+    spec:
+      containers:
+      - env:
+        - name: SES_MODULE_ID
+          value: {{ .Values.name }}
+        image: {{ .Values.image }}
+        imagePullPolicy: IfNotPresent
+        name: {{ .Values.name }}
+        ports:
+        - containerPort: 8000
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: allow-dns
+  namespace: ses-{{ .Values.name }}
+spec:
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: allow-in-local
+  namespace: ses-{{ .Values.name }}
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          instance: instance-{{ .Values.name }}
+  podSelector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: allow-out-local
+  namespace: ses-{{ .Values.name }}
+spec:
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          instance: instance-{{ .Values.name }}
+  podSelector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: deny-in
+  namespace: ses-{{ .Values.name }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: deny-out
+  namespace: ses-{{ .Values.name }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: egress-basen
+  namespace: ses-{{ .Values.name }}
+spec:
+  egress:
+  - ports:
+    - port: 80
+      protocol: TCP
+    - port: 443
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 46.183.74.113/32
+  podSelector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+      ses_allow_egress: basen
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: egress-world
+  namespace: ses-{{ .Values.name }}
+spec:
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+  podSelector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+      ses_allow_egress: world
+  policyTypes:
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: ingress-proxy
+  namespace: ses-{{ .Values.name }}
+spec:
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ .Values.traefik.namespace }}
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: {{ .Values.traefik.namespace }}
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    admin: ebu@basen.net
+    # The following is what tells traefik to forward an entry point here
+    traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.traefik.entrypoint }}
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: proxy-{{ .Values.traefik.entrypoint }}
+  namespace: ses-{{ .Values.name }}
+spec:
+  entryPoints:
+  # as defined in Traefik setup
+  - {{ .Values.traefik.entrypoint }}
+  routes:
+  - kind: Rule
+    match: Host(`{{ .Values.host }}`)
+    services:
+    - name: webservice
+      namespace: ses-{{ .Values.name }}
+      port: {{ .Values.services.webservice.arbitraryport }}
+  tls:
+    certResolver: {{ .Values.traefik.certresolver }}
+    options: 
+      name: tlsoptions
+      namespace: ses-{{ .Values.name }}
+    # OR: passthrough: true
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSOption
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: tlsoptions
+  namespace: ses-{{ .Values.name }}
+spec:
+  cipherSuites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+  - TLS_AES_256_GCM_SHA384
+  - TLS_AES_128_GCM_SHA256
+  - TLS_CHACHA20_POLY1305_SHA256
+  - TLS_FALLBACK_SCSV
+  curvePreferences:
+  - CurveP521
+  - CurveP384
+  minVersion: VersionTLS12

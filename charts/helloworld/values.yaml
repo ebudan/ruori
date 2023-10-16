@@ -1,0 +1,22 @@
+image: docker.io/crccheck/hello-world:v1.0.0
+port: 8000
+name: helloworld
+host: ses-twisauna.basen.com
+
+traefik:
+  namespace: default
+  # Must be the instance id of the generated rproxy service, 
+  # matchable with label app.kubernetes.io/instance
+  # See also complication with instanceLabelOverride in Traefik values.
+  # Use --set traefik.instanceLabelOverride=ingresscontroller in 
+  # our Traefik customizer template. 
+  instanceLabelOverride: ingresscontroller
+  # entrypoint must be defined in the traefik deployment values
+  entrypoint: websecure
+  certresolver: letsencrypt
+
+services:
+  # Only one for now, more later
+  webservice:
+    arbitraryport: 10101
+
