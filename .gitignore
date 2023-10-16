@@ -1,2 +1,5 @@
 secrets/
 tmp/
+tmp/
+charts/tester/charts
+charts/traefik/charts

@@ -12,8 +12,8 @@ the chart index. Please provide a `resources/README-chartname.md` to help use an
 
 ## Usage
 
-[Helm](https://helm.sh) must be installed to use the charts.  Please refer to
-Helm's [documentation](https://helm.sh/docs) to get started.
+[Helm](https://helm.sh) v3.13+ must be installed to use the charts. Older helm versions do not propagate sub-chart nulling properly.  
+Please refer to Helm's [documentation](https://helm.sh/docs) to get started.
 
 Once Helm has been set up correctly, add the repo as follows:
 
