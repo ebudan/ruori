@@ -1,0 +1,20 @@
+{{/* Policy to allow traefik network ingress into namespaced deployment.
+     Any .Values.traefik.ports entry with pass=true is included. */}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external
+  namespace: {{ include "traefik.namespace" . }}
+spec:
+  ingress:
+  - from: []
+    ports:
+{{- range $name, $config := .Values.traefik.ports }}
+{{- if (eq $config.pass true) }}
+    - port: {{ $config.port }}
+      protocol: {{ $config.protocol }}
+{{- end }}
+{{- end }}
+  podSelector:
+    matchLabels:
+      networking/allow-internet-ingress: "true"
