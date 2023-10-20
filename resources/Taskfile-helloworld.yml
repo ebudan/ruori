@@ -1,0 +1,31 @@
+version: '3'
+
+env:
+  OCI_EXE: '{{.OCI_EXE | default "podman"}}'
+vars:
+  CHART: ruori/helloworld
+
+tasks:
+  default:
+    cmds:
+      - task: generate-deployment
+
+  generate-deployment:
+    desc: Runs helm to generate a test app running behind traefik-rproxy-le-1.
+    vars: 
+      OUT:
+        sh: echo "{{.USER_WORKING_DIR}}/deploy-${INSTANCE}-$(date +%Y%m%dT%H%M%S%z).yaml"
+    requires:
+      vars: [INSTANCE,TRAEFIK_INSTANCE]
+    cmds:
+      - echo "Generating $OUT..."
+      - >
+        helm template \
+          --set traefik.instanceLabelOverride={{.TRAEFIK_INSTANCE}} \
+          --set traefik.namespace={{.TRAEFIK_INSTANCE}} \
+          --set namespace={{.INSTANCE}} \
+          {{.INSTANCE}} ruori/helloworld >{{.OUT}}
+      - >
+        echo -e "Done. Remember to perform the following tasks:\n
+        - deploy {{.OUT}} on your cluster\n"
+

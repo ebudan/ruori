@@ -51,5 +51,5 @@ tasks:
       - >
         echo -e "Done. Remember to perform the following tasks:\n
         - deploy {{.OUT}} on your cluster\n
-        - create $HOSTPATH on cluster host(s)\n
+        - create $HOSTPATH on cluster host(s)\n"
 

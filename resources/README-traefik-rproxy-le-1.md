@@ -48,6 +48,10 @@ You may further want to adjust `charts/traefik-rproxy-le-1/values.yaml` settings
 
     --set traefik.logs.general.level=ERROR
 
+A `resources/Taskfile-traefik-rproxy-le-1.yml` helper has been prepared, but it does not help with your additional settings:
+
+    LEEMAIL=your-acme@email.net INSTANCE=traefikid HOSTPATH=/data/services/traefik-ingress task -t ./resources/Taskfile-traefik-rproxy-le-1.yml 
+
 
 ## Adding accessible ports
 
