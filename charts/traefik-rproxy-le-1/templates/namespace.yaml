@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    # used by client apps to allow traffic from us to ns'd pods!
+    ingress-controller: {{ template "subtraefik.namespace" . }}
+  name: {{ template "subtraefik.namespace" . }}

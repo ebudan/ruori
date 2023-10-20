@@ -1,0 +1,136 @@
+# See appropriate README for helm options. 
+# This chart will not work without appropriate instance and namespace overrides. 
+traefik:
+  enabled: true
+  image:
+    # The traefik image to use. 
+    tag: "v2.10.5"
+
+  # EB: specify ERROR for production:
+  logs:
+    general:
+      level: DEBUG
+
+  # EB: disable some defaults
+  globalArguments: 
+    - "--global.checknewversion"
+
+  # EB_TBD: disable ingressClass, not needed for now
+  ingressClass:
+    enabled: false
+
+  deployment:
+    kind: DaemonSet
+    replicas: 1
+    podLabels: 
+      # EB: Our ns-ingress-networking rule requires this:
+      networking/allow-internet-ingress: "true"
+    labels:
+      # EB: ...and this!
+      networking/allow-internet-ingress: "true"
+
+  # EB: in our SES use case, we work more like a rproxy using clusterIP and assigned ports. 
+  service:
+    type: ClusterIP
+
+  # EB: According to previous readings, free tier Traefik won't support multi-node ingress. 
+  # Deploy the ingress on master only.
+  # TODO: confirm.  
+  nodeSelector: 
+    node-role.kubernetes.io/master: "true"
+
+  # EB: using Traefik's CRD kubernetes model. 
+  providers:
+    kubernetesCRD:
+      allowCrossNamespace: true
+    kubernetesIngress:
+      enabled: false
+
+  # EB: Non-nullable bug (Helm) keeps this in results. TODO:
+  metrics:
+    prometheus: null
+
+  # EB: Employ the default /data/. Override with `--set traefik.persistence.hostpath=...` for your deployment.
+  persistence:
+    name: traefik-data
+    enabled: true
+    path: /data
+    # Our added volumes.yaml requires manual:
+    storageClass: manual
+    hostpath: /unspecified/traefik/persistence/hostpath
+  # EB: Remember to create above hostpath on master node!
+
+  certResolvers:
+    letsencrypt:
+      email: ebu@basen.net
+      tlsChallenge: true
+      storage: /data/acme.json
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+
+  ingressRoute:
+    dashboard:
+      enabled: false
+
+  # EB: for traefik default ports, see their values.yaml.
+  ports:
+    traefik:
+      port: 9000
+      expose: false
+      exposedPort: 9000
+      protocol: TCP
+    web:
+      port: 8000
+      expose: true
+      exposedPort: 80
+      hostPort: 80
+      protocol: TCP
+      redirectTo: websecure
+    websecure:
+      port: 8443
+      expose: true
+      exposedPort: 443
+      # EB: using Traefik's defaults templates+values, 443 was never exposed -> LE could not reach. 
+      # Remember to spec as hostPort if port above is not default!
+      hostPort: 443
+      protocol: TCP
+      http3:
+        enabled: false
+      tls:
+        enabled: true
+        # this is the name of a TLSOption definition
+        options: "default"
+        certResolver: "letsencrypt"
+        domains: []
+      middlewares: []
+    metrics:
+      port: 9100
+      expose: false
+      exposedPort: 9100
+      protocol: TCP
+    mqtt:
+      expose: true
+      pass: true
+      port: 8883
+      exposedPort: 8883
+      # hostPort: 8883
+      # containerPort: 8883
+      protocol: TCP
+    autentica:
+      expose: true
+      port: 9443
+      exposedPort: 9443
+      # hostPort: 9443
+      # containerPort: 9443
+      protocol: TCP
+
+  # EB: we seem to need a nameable tlsoptions instance.
+  tlsOptions:
+    default:
+      labels: {}
+      sniStrict: false
+      preferServerCipherSuites: true
+      minVersion: VersionTLS12
+
+  rbac:
+    enabled: true
+    namespaced: false

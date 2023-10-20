@@ -2,6 +2,7 @@ image: docker.io/crccheck/hello-world:v1.0.0
 port: 8000
 name: helloworld
 host: ses-twisauna.basen.com
+namespace: default
 
 traefik:
   namespace: default

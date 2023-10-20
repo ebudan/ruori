@@ -1,0 +1,55 @@
+version: '3'
+
+#
+# Sample Taskfile for generating a deployment descriptor for quay.io/basen/lm-trainn, 
+# providing a node directory mount, a password file as a secret, and a number of 
+# required deployment ENV vars. 
+#
+# To generate a deployment 'myuniqueid':
+#
+# LEEMAIL=your@letsencrypt.email \
+# INSTANCE=myuniqueid \
+# HOSTPATH=/data/services/myuniqueid \
+# task -t Taskfile-trle1.yml
+#
+#
+# See also: https://taskfile.dev/usage/
+#
+
+
+env:
+  OCI_EXE: '{{.OCI_EXE | default "podman"}}'
+vars:
+  CHART: ruori/traefik-rproxy-le-1
+
+tasks:
+  default:
+    cmds:
+      - task: generate-deployment
+
+  clean:
+    cmds:
+      - rm -rf ./secrets
+
+  generate-deployment:
+    desc: Runs helm to generate a Traefik LE 1-node rproxy.
+    vars: 
+      OUT:
+        sh: echo "{{.USER_WORKING_DIR}}/deploy-${INSTANCE}-$(date +%Y%m%dT%H%M%S%z).yaml"
+    requires:
+      vars: [INSTANCE,LEEMAIL,HOSTPATH]
+    cmds:
+      - echo "Generating $OUT..."
+      - >
+        helm template \
+          --set nameOverride= \
+          --set traefik.persistence.hostpath="{{.HOSTPATH}}" \
+          --set traefik.instanceLabelOverride="{{.INSTANCE}}" \
+          --set traefik.namespaceOverride="{{.INSTANCE}}" \
+          --set traefik.certResolvers.letsencrypt.email="{{.LEEMAIL}}" \
+          {{.INSTANCE}} {{.CHART}} >{{.OUT}}
+      - >
+        echo -e "Done. Remember to perform the following tasks:\n
+        - deploy {{.OUT}} on your cluster\n
+        - create $HOSTPATH on cluster host(s)\n
+

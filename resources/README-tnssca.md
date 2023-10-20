@@ -1,3 +1,5 @@
+DEPRECATED - retained as a model for secrets and env setup for tnssca v2.
+
 # tnssca - Traefik-Name-Spaced-Single-Container-App
 
 This is a Helm chart for deploying 

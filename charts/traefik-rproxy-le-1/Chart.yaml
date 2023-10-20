@@ -1,6 +1,6 @@
 apiVersion: v2
-name: tester
-description: testing traefik TLS ns pass
+name: traefik-rproxy-le-1
+description: Recipe for Traefik as DaemonSet with namespaces, LetsEncrypt as front-end for non-scaling apps.
 type: application
 version: 0.1.0
 appVersion: "1.16.0"
