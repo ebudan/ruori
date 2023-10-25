@@ -1,21 +1,28 @@
+# This demo supports the deployment of one simple image.
+# Its port will be served behind :443 with Let's Encrypt generated certificates, 
+# courtesy of chart traefik-proxy-le-1.
 image: docker.io/crccheck/hello-world:v1.0.0
 port: 8000
+# The name is a generic name for the type of app/deployment.
 name: helloworld
+# The host is a FQDN (as defined by your domain provider) to serve at. 
 host: ses-twisauna.basen.com
+# The namespace, depending on your needs, can be a unique NS for deploying
+# multiple identical (or non-) apps that can not access each other in any way.
 namespace: default
 
+# This demo assumes a traefik-proxy-le-1 deployment that acts as the ingress router.
+# The following settings are identical to the ones used when generating your traefik-proxy-le-1 instance. 
 traefik:
   namespace: default
-  # Must be the instance id of the generated rproxy service, 
-  # matchable with label app.kubernetes.io/instance
-  # See also complication with instanceLabelOverride in Traefik values.
-  # Use --set traefik.instanceLabelOverride=ingresscontroller in 
-  # our Traefik customizer template. 
-  instanceLabelOverride: ingresscontroller
-  # entrypoint must be defined in the traefik deployment values
+  # instanceLabelOverride must be the instance id of the generated rproxy service, matchable with label app.kubernetes.io/instance.
+  instanceLabelOverride: TRAEFIK_INSTANCE_NAME
+  # entrypoint is the name of the configured tls (+ LE) entrypoint in the traefik service. (Default: websecure)
   entrypoint: websecure
+  # certresolver is the name of the configured LE resolver in the traefik service. (Default: letsencrypt)
   certresolver: letsencrypt
 
+# Services defines settings for 
 services:
   # Only one for now, more later
   webservice:
