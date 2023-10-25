@@ -34,7 +34,7 @@ tasks:
     cmds:
       - rm -rf ./secrets
 
-  generate-deployment:
+  generate-tnssc-deployment:
     desc: Runs Helm to generate a K8s deployment descriptor for our app deployment.
     vars: 
       OUT:

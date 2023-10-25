@@ -1,0 +1,12 @@
+{{- if not (eq .Values.namespace "default") }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+    name: {{ .Values.namespace }}
+  name: {{ .Values.namespace }}
+{{- end }}

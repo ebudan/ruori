@@ -1,0 +1,199 @@
+---
+# This NWP rule allows outgoing DNS queries from all pods in this namespace.
+# This is required for both inter-pod addressing and external name lookups.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+#  - to:
+#    - namespaceSelector:
+#        matchLabels:
+#          name: kube-system
+#    ports:
+#    - protocol: UDP
+#      port: 53
+  - ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# This NWP allows incoming traffic from all pods in this namespace 
+# to all pods in this namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-in-local
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: 
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+  policyTypes:
+  - Ingress
+  ingress: 
+    - from: 
+      - podSelector:
+          matchLabels:
+            instance: instance-{{ .Values.name }}
+---
+# This NWP allows outgoing traffic from all pods in this namespace 
+# to all pods in this namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-out-local
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: 
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+  policyTypes:
+  - Egress
+  egress: 
+    - to: 
+      - podSelector:
+          matchLabels:
+            instance: instance-{{ .Values.name }}
+---
+# This default NWP denies all incoming traffic to pods in this namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-in
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+# This default NWP denies all outgoing traffic to pods in this namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-out
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+---
+# This NWP allows incoming traffic from our rproxy (Traefik), 
+# and outgoing to the same, for all pods in this namespace.
+#
+# Both parts of this rule are required to be able to detect
+# our app on Trafik's side, and to send our output to the 
+# rproxy to be delivered to external clients.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-proxy
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+     - namespaceSelector:
+        matchLabels:
+          # Note - coordinate with .../proxy/* for correct labeling
+          ingress-controller: {{ .Values.traefik.namespace }}
+       podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+    #ports:
+    # - protocol: TCP
+    #   port: 9191
+    # - protocol: TCP
+    #   port: 1883
+    # ...
+    # We could restrict incoming ports, but for now 
+    # all from proxy/ses allowed.
+  egress:
+  - to:
+     - namespaceSelector:
+        matchLabels:
+          ingress-controller: {{ .Values.traefik.namespace }}
+       podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+---
+# This NWP rule allows access from pods to external addresses, as defined
+# in helm values.yaml networking.egress.
+# Any pod requiring this access should add label ses_allow_egress=<name> to its labels.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  annotations:
+    admin: ebu@basen.net
+  labels:
+    instance: instance-{{ .Values.name }}
+  name: egress-limiter
+  namespace: {{ .Values.namespace }}
+spec:
+  egress:
+{{- with .Values.networking.egress }}
+{{- toYaml . | nindent 4 }}
+{{- end }}
+  podSelector:
+    matchLabels:
+      instance: instance-{{ .Values.name }}
+      ses_allow_egress: egress-limiter
+  policyTypes:
+  - Egress
+# ---
+# # This NWP rule allows access to mypilot.basen.com.
+# # Any pod requiring this access should add label ses_allow_egress=basen to its labels.
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: egress-basen
+#   namespace: {{ .Values.namespace }}
+# spec:
+#   podSelector:
+#     matchLabels:
+#       ses_allow_egress: basen
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - to:
+#      - ipBlock:
+#         cidr: 46.183.74.113/32
+#     ports:
+#      - protocol: TCP
+#        port: 80
+#      - protocol: TCP
+#        port: 443
+# # A second block could be added..
+# #  - to:
+# #    - ipBlock: ...
+# ---
+# # This NWP rule allows access to world (excepting private IP ranges).
+# # Any pod requiring this access should add label ses_allow_egress=world to its labels.
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: egress-world
+#   namespace: {{ .Values.namespace }}
+# spec:
+#   podSelector:
+#     matchLabels:
+#       ses_allow_egress: world
+#   policyTypes:
+#   - Egress
+#   egress:
+#   - to:
+#      - ipBlock:
+#         cidr: 0.0.0.0/0
+#         except:
+#           - 10.0.0.0/8
+#           - 172.16.0.0/12
+#           - 192.168.0.0/16

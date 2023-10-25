@@ -1,0 +1,25 @@
+{{- range $module, $config := .Values.modules }}
+{{- if and ($config) (not (hasPrefix "core-" (index $config "type"))) }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $module }}
+  labels:
+    instance: instance-{{ $.Values.name }}
+    name: {{ $module }}
+    module: {{ $module }}
+spec:
+  ports:
+  - protocol: TCP
+    port: {{ or $config.containerPort 9191 }}
+    targetPort: {{ or $config.containerPort 9191 }}
+  selector:
+    module: {{ $module }}
+    instance: {{ $.Values.name }}
+{{- end }}
+{{- end }}
+
+
+
+

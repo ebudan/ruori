@@ -1,0 +1,52 @@
+---
+# Having problems using tlsoptions from default namespace. 
+# Using a local version always worked prior to v2.10.
+apiVersion: traefik.containo.us/v1alpha1
+kind: TLSOption
+metadata:
+  labels:
+    instance: instance-helloworld
+  name: tlsoptions
+  namespace: {{ .Values.namespace }}
+spec:
+  preferServerCipherSuites: true
+  sniStrict: false
+  minVersion: VersionTLS12
+{{- range $name,$conf := .Values.modules.base}}
+{{- if $conf.rproxy }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+{{- if $conf.rproxy.passthrough }}
+kind: IngressRouteTCP
+{{- else }}
+kind: IngressRoute
+{{- end}}
+metadata:
+  # annotations:
+  #   traefik.ingress.kubernetes.io/router.entrypoints: {{$name}}
+  labels: 
+    instance: instance-{{ $.Values.name }}
+  name: proxy-{{$name}}
+  namespace: {{ $.Values.namespace }}
+spec:
+  entryPoints:
+    - {{$conf.rproxy.entrypoint}}
+  tls:
+  {{- if $conf.rproxy.passthrough }}
+    passthrough: true
+  {{- else }}
+    # as defined in traefik chart elsewhere...
+    certResolver: letsencrypt
+    options:
+      name: tlsoptions
+      namespace: {{ $.Values.namespace }}
+  {{- end }}
+  routes:
+    - kind: Rule
+      match: HostSNI(`{{ $.Values.host }}`)
+      services:
+        - name: {{ $name }}
+          namespace: {{ $.Values.namespace }}
+          port: {{ $conf.containerPort }} # We use containerPort for service as well as containers for some degree of simplicity..
+{{- end }}
+{{- end }}
