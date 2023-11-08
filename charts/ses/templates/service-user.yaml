@@ -1,25 +1,19 @@
-{{- range $module, $config := .Values.modules }}
-{{- if and ($config) (not (hasPrefix "core-" (index $config "type"))) }}
+{{- range $module, $config := .Values.modules.user }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ $module }}
   labels:
-    instance: instance-{{ $.Values.name }}
+    instance: instance-{{ $.Values.deployment.name }}
     name: {{ $module }}
     module: {{ $module }}
 spec:
-  ports:
+  ports:{{/* for now only a single port actually supported! */}}
   - protocol: TCP
-    port: {{ or $config.containerPort 9191 }}
-    targetPort: {{ or $config.containerPort 9191 }}
+    port: {{ or $config.ports.containerPort 9191 }}
+    targetPort: {{ or $config.ports.containerPort 9191 }}
   selector:
     module: {{ $module }}
-    instance: {{ $.Values.name }}
+    instance: {{ $.Values.deployment.name }}
 {{- end }}
-{{- end }}
-
-
-
-

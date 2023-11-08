@@ -5,7 +5,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: {}
   policyTypes:
@@ -30,18 +30,18 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-in-local
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: 
     matchLabels:
-      instance: instance-{{ .Values.name }}
+      instance: instance-{{ .Values.deployment.name }}
   policyTypes:
   - Ingress
   ingress: 
     - from: 
       - podSelector:
           matchLabels:
-            instance: instance-{{ .Values.name }}
+            instance: instance-{{ .Values.deployment.name }}
 ---
 # This NWP allows outgoing traffic from all pods in this namespace 
 # to all pods in this namespace.
@@ -49,25 +49,25 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-out-local
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: 
     matchLabels:
-      instance: instance-{{ .Values.name }}
+      instance: instance-{{ .Values.deployment.name }}
   policyTypes:
   - Egress
   egress: 
     - to: 
       - podSelector:
           matchLabels:
-            instance: instance-{{ .Values.name }}
+            instance: instance-{{ .Values.deployment.name }}
 ---
 # This default NWP denies all incoming traffic to pods in this namespace.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: deny-in
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: {}
   policyTypes:
@@ -78,7 +78,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: deny-out
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: {}
   policyTypes:
@@ -94,7 +94,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: ingress-proxy
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   podSelector: {}
   policyTypes:
@@ -105,10 +105,10 @@ spec:
      - namespaceSelector:
         matchLabels:
           # Note - coordinate with .../proxy/* for correct labeling
-          ingress-controller: {{ .Values.traefik.namespace }}
+          ingress-controller: {{ .Values.traefik.instance }}
        podSelector:
         matchLabels:
-          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+          app.kubernetes.io/instance: {{ .Values.traefik.instance }}
     #ports:
     # - protocol: TCP
     #   port: 9191
@@ -121,10 +121,10 @@ spec:
   - to:
      - namespaceSelector:
         matchLabels:
-          ingress-controller: {{ .Values.traefik.namespace }}
+          ingress-controller: {{ .Values.traefik.instance }}
        podSelector:
         matchLabels:
-          app.kubernetes.io/instance: {{ .Values.traefik.instanceLabelOverride }}
+          app.kubernetes.io/instance: {{ .Values.traefik.instance }}
 ---
 # This NWP rule allows access from pods to external addresses, as defined
 # in helm values.yaml networking.egress.
@@ -135,17 +135,17 @@ metadata:
   annotations:
     admin: ebu@basen.net
   labels:
-    instance: instance-{{ .Values.name }}
+    instance: instance-{{ .Values.deployment.name }}
   name: egress-limiter
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   egress:
-{{- with .Values.networking.egress }}
+{{- with .Values.deployment.networking.egress }}
 {{- toYaml . | nindent 4 }}
 {{- end }}
   podSelector:
     matchLabels:
-      instance: instance-{{ .Values.name }}
+      instance: instance-{{ .Values.deployment.name }}
       ses_allow_egress: egress-limiter
   policyTypes:
   - Egress
@@ -156,7 +156,7 @@ spec:
 # kind: NetworkPolicy
 # metadata:
 #   name: egress-basen
-#   namespace: {{ .Values.namespace }}
+#   namespace: {{ .Values.deployment.namespace }}
 # spec:
 #   podSelector:
 #     matchLabels:
@@ -182,7 +182,7 @@ spec:
 # kind: NetworkPolicy
 # metadata:
 #   name: egress-world
-#   namespace: {{ .Values.namespace }}
+#   namespace: {{ .Values.deployment.namespace }}
 # spec:
 #   podSelector:
 #     matchLabels:

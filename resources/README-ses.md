@@ -1,14 +1,19 @@
-Initial chart structure for SES -> deployment descriptor. 
+# ses - ses-modules-behind-traefik-rproxy-with-LE
 
-NOT FUNCTIONAL 
+This chart generates a SES app deployment designed to work with a `ses-traefik-le-1` charted ingress controller. 
 
-We use `ses subst` to generate an initial `values.yaml`.  
-That setup is then used with the `ses` helm chart to generate the final descriptor.  
+First, you must have a valid SES environment; see [SES documentation](https://github.com/basen/ses-base/). 
 
-    ses subst --in ses-values.tmpl --out customvalues.yaml
-    helm template -f customvalues.yaml foobar ruori/ses >sample-descriptor.yaml
+Then, you generate an interim descriptor:
+
+    ses deployment helm >ses-values.yaml
+
+Finally, to generate the deployment:
+
+    helm template -f ses-values.yaml \
+    --set traefik.instance=$TRAEFIK_INSTANCE \
+    foobar ruori/ses >my-deployment.yaml
+
+Here, TRAEFIK_INSTANCE is the identifier of the rproxy instance generated with `helm ruori/traefik-rproxy-le-1`. 
 
 Note that we encode container secrets into the descriptor, which suits our current use case but is not generally the best of ideas. (Further work on skrt mgmt required.)  
-
-Note also that we must somehow pre-generate two particular secret files, the `backbone.acl` and `userdb.yaml`, and inject those. 
-This process is still undefined.

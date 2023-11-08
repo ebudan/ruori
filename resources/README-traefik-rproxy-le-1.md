@@ -4,7 +4,8 @@ This is a chart for deploying Traefik as a domain name based rproxy DaemonSet wi
 
 This proxy only runs on the master node; running a distributed ingress will require a business license and/or solving distributed certificate storage. 
 
-To deploy a namespaced app behind this rproxy, see [README-helloworld.md]. 
+To deploy a namespaced app behind this rproxy, see [README-helloworld.md].  
+To deploy a multiple container app along SES guidelines, see [README-ses.md]. 
 
 ## Prerequisites
 
@@ -32,13 +33,14 @@ To build a deployable Traefik template:
 
     helm template \
     --set traefik.persistence.hostpath=$HOSTPATH \
-    --set traefik.instanceLabelOverride=$INSTANCE \
-    --set traefik.namespaceOverride=$INSTANCE \
+    --set traefik.instanceLabelOverride=$TRAEFIK_INSTANCE \
+    --set traefik.namespaceOverride=$TRAEFIK_INSTANCE \
     --set traefik.certResolvers.letsencrypt.email=$EMAIL \
-    $INSTANCE ruori/traefik-rproxy-le-1 >deploy-$INSTANCE.yml
+    $TRAEFIK_INSTANCE ruori/traefik-rproxy-le-1 >deploy-$TRAEFIK_INSTANCE.yml
 
-We use `$INSTANCE` as a unique ID for the rproxy and its namespace.  
+We use `$TRAEFIK_INSTANCE` as a unique ID for the rproxy and its namespace.  
 Note that we must specify the overrides as above; the traefik template generates unreliable defaults if we don't.  
+This `$TRAEFIK_INSTANCE` value will be required when you deploy an app with other charts (ruori/helloworld, ruori/ses).  
 
 The `$HOSTPATH` must be a prepared master-node location to store Let's Encrypt certificates. 
 
@@ -55,11 +57,15 @@ A `resources/Taskfile-traefik-rproxy-le-1.yml` helper has been prepared, but it 
 
 ## Adding accessible ports
 
-This chart provides additional access to ports 8883 (mqtt) and 9443 (autentica). If your deployment requires more, you will have to customize this chart or provide additional setup flags, then regenerate the deployment. 
+This chart provides ingress 443 (websecure) and additional access to ports 8883 (mqtt) and 9443 (autentica). If your deployment requires more, you will have to customize this chart or provide additional setup flags, then regenerate the deployment. 
+
+
+## Caveats
+
+This chart sets Traefik up as a Let's Encrypt capable reverse-proxy/ingress, BUT certificate persistence combined 
+with the non-commercial traefik version restrict our options - it is not HA, but instead limited to the master node.
 
 ## To Do
 
-- Support TLS passthrough host->traefik->pod
-- Support multiple container deployment
 - Prometheus doesn't get disabled (Helm empty override propagation bug/feature)
 

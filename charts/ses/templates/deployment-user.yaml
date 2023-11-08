@@ -1,32 +1,29 @@
-{{- range $module, $config := .Values.modules }}
-{{- if and ($config) (not (hasPrefix "core-" (index $config "type"))) }}
+{{- range $module, $config := .Values.modules.user }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ $module }}
-  namespace: {{ $.Values.namespace }}{{/* see https://stackoverflow.com/questions/55213545/helm-range-without-leaving-global-scope */}}
+  namespace: {{ $.Values.deployment.namespace }}{{/* see https://stackoverflow.com/questions/55213545/helm-range-without-leaving-global-scope */}}
   labels:
-    instance: instance-{{ $.Values.name }}
+    instance: instance-{{ $.Values.deployment.name }}
     name: {{ $module }}
     module: {{ $module }}
     ses_allow_egress: egress-limiter
 spec:
   selector:
     matchLabels:
-      instance: instance-{{ $.Values.name }}
+      instance: instance-{{ $.Values.deployment.name }}
       name: {{ $module }}
       module: {{ $module }}
-# Labels from kustomization.yaml
   replicas: 1
   template:
     metadata:
       labels:
-        instance: instance-{{ $.Values.name }}
+        instance: instance-{{ $.Values.deployment.name }}
         name: {{ $module }}
         module: {{ $module }}
         ses_allow_egress: egress-limiter
-# Labels from kustomization.yaml
     spec:
       # imagePullSecrets: 
       # - name: local-registry
@@ -38,28 +35,29 @@ spec:
         {{- if $config.secrets }}
         - name: volsecrets
           secret:
-            secretName: sikrits-{{ $module }}
+            secretName: {{ $module }}-deploy-secrets
         {{- end }}
       containers:
       - name: {{ $module }}
         image: {{ $config.image }}
         imagePullPolicy: {{ or $config.imagePullPolicy "Always" }}
         ports:
-        - containerPort: {{ or $config.containerPort 9191 }}
+        - containerPort: {{ default $config.ports.containerPort 9191 }}
         env:
         {{- range $kv := $config.env }}
         - name: {{$kv.name}}
-          value: {{$kv.value}}
+          value: "{{$kv.value}}"
         {{- end }}
         volumeMounts:
+        {{- if $config.secrets }}
           - name: volsecrets
             mountPath: {{ $config.secrets.mount }}
             readOnly: {{ $config.secrets.readOnly }}
+        {{- end }}
         securityContext:
           runAsUser: 405
           runAsGroup: 100
           allowPrivilegeEscalation: false
 #        nodeSelector: 
 #          accel: nvidia
-{{- end }}
 {{- end }}

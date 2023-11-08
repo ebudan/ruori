@@ -7,12 +7,12 @@ metadata:
   labels:
     instance: instance-helloworld
   name: tlsoptions
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.deployment.namespace }}
 spec:
   preferServerCipherSuites: true
   sniStrict: false
   minVersion: VersionTLS12
-{{- range $name,$conf := .Values.modules.base}}
+{{- range $name,$conf := .Values.modules.core}}
 {{- if $conf.rproxy }}
 ---
 apiVersion: traefik.containo.us/v1alpha1
@@ -25,9 +25,9 @@ metadata:
   # annotations:
   #   traefik.ingress.kubernetes.io/router.entrypoints: {{$name}}
   labels: 
-    instance: instance-{{ $.Values.name }}
+    instance: instance-{{ $.Values.deployment.name }}
   name: proxy-{{$name}}
-  namespace: {{ $.Values.namespace }}
+  namespace: {{ $.Values.deployment.namespace }}
 spec:
   entryPoints:
     - {{$conf.rproxy.entrypoint}}
@@ -39,14 +39,18 @@ spec:
     certResolver: letsencrypt
     options:
       name: tlsoptions
-      namespace: {{ $.Values.namespace }}
+      namespace: {{ $.Values.deployment.namespace }}
   {{- end }}
   routes:
+      {{- if $conf.rproxy.passthrough }}
+    - match: HostSNI(`{{ $.Values.deployment.host }}`)
+      {{- else }}
     - kind: Rule
-      match: HostSNI(`{{ $.Values.host }}`)
+      match: Host(`{{ $.Values.deployment.host }}`)
+      {{- end }}
       services:
         - name: {{ $name }}
-          namespace: {{ $.Values.namespace }}
-          port: {{ $conf.containerPort }} # We use containerPort for service as well as containers for some degree of simplicity..
+          namespace: {{ $.Values.deployment.namespace }}
+          port: {{ required "missing containerPort" $conf.ports.containerPort }} # We use containerPort for service as well as containers for some degree of simplicity..
 {{- end }}
 {{- end }}

@@ -42,7 +42,6 @@ tasks:
       - echo "Generating $OUT..."
       - >
         helm template \
-          --set nameOverride= \
           --set traefik.persistence.hostpath="{{.HOSTPATH}}" \
           --set traefik.instanceLabelOverride="{{.INSTANCE}}" \
           --set traefik.namespaceOverride="{{.INSTANCE}}" \
