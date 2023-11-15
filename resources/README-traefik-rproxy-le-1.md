@@ -47,6 +47,7 @@ If you need manual intervention, this is what the Taskfile does:
 We use `$TRAEFIK_INSTANCE` as a unique ID for the rproxy and its namespace.  
 Note that we must specify the overrides as above; the traefik template generates unreliable defaults if we don't.  
 This `$TRAEFIK_INSTANCE` value will be required when you deploy an app with other charts (ruori/helloworld, ruori/ses).  
+At this writing, our default installation uses `TRAEFIK_INSTANCE=traefik-ingress`. Your setup may vary.  
 
 The `$HOSTPATH` must be a prepared master-node location to store Let's Encrypt certificates. 
 

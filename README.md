@@ -19,7 +19,7 @@ Once Helm has been set up correctly, add the repo as follows:
 
     helm repo add ruori https://ebudan.github.io/ruori/
 
-Check available charts with `helm search repo ruori`. 
+Check available charts with `helm repo update ruori && helm search repo ruori`. 
 Check documentation under `./resources` for the chart. 
 
 To generate a templated deployment, you will usually perform
