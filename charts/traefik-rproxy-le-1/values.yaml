@@ -65,7 +65,8 @@ traefik:
       email: ebu@basen.net
       tlsChallenge: true
       storage: /data/acme.json
-      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      # If not ready for production, run with --set traefik.certResolvers.caServer=...
+      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
 
   ingressRoute:
     dashboard:
@@ -112,14 +113,14 @@ traefik:
       pass: true
       port: 8883
       exposedPort: 8883
-      # hostPort: 8883
+      hostPort: 8883
       # containerPort: 8883
       protocol: TCP
     autentica:
       expose: true
       port: 9443
       exposedPort: 9443
-      # hostPort: 9443
+      hostPort: 9443
       # containerPort: 9443
       protocol: TCP
 

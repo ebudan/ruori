@@ -47,6 +47,8 @@ tasks:
           --set traefik.namespaceOverride="{{.INSTANCE}}" \
           --set traefik.certResolvers.letsencrypt.email="{{.LEEMAIL}}" \
           {{.INSTANCE}} {{.CHART}} >{{.OUT}}
+      - sed -i 's/--api.dashboard=true/--api.dashboard=false/g' {{.OUT}}
+      - sed -i 's/--metrics.prometheus=true/--metrics.prometheus=false/g' {{.OUT}}
       - >
         echo -e "Done. Remember to perform the following tasks:\n
         - deploy {{.OUT}} on your cluster\n

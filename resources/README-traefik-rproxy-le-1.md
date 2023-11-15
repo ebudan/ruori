@@ -29,7 +29,13 @@ If not using a local copy, make helm aware of this repository:
 
 ## Building a deployment
 
-To build a deployable Traefik template: 
+Use the provided Taskfile:
+
+    LEEMAIL=your-acme@email.net INSTANCE=traefik-ingress HOSTPATH=/data/services/traefik-ingress task -t ./resources/Taskfile-traefik-rproxy-le-1.yml 
+
+(The task performs some additional replacements that the stock Traefik chart does not want to support.)
+
+If you need manual intervention, this is what the Taskfile does:
 
     helm template \
     --set traefik.persistence.hostpath=$HOSTPATH \
@@ -50,9 +56,6 @@ You may further want to adjust `charts/traefik-rproxy-le-1/values.yaml` settings
 
     --set traefik.logs.general.level=ERROR
 
-A `resources/Taskfile-traefik-rproxy-le-1.yml` helper has been prepared, but it does not help with your additional settings:
-
-    LEEMAIL=your-acme@email.net INSTANCE=traefik-ingress HOSTPATH=/data/services/traefik-ingress task -t ./resources/Taskfile-traefik-rproxy-le-1.yml 
 
 
 ## Adding accessible ports

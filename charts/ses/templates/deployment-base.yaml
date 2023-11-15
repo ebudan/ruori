@@ -53,9 +53,11 @@ spec:
             readOnly: {{ $config.secrets.readOnly }}
         {{- end }}
         securityContext:
-          runAsUser: 405
-          runAsGroup: 100
           allowPrivilegeEscalation: false
+          {{- if and $config.securityContext $config.securityContext.uidgid }}
+          runAsUser: {{ splitList ":" $config.securityContext.uidgid | first }}
+          runAsGroup: {{ splitList ":" $config.securityContext.uidgid | last }}
+          {{- end }}
 #        nodeSelector: 
 #          accel: nvidia
 {{- end }}

@@ -4,6 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ $module }}
+  namespace: {{ $.Values.deployment.namespace }}
   labels:
     instance: instance-{{ $.Values.deployment.name }}
     name: {{ $module }}
@@ -16,5 +17,5 @@ spec:
     targetPort: {{ required "missing containerPort" $config.ports.containerPort }}
   selector:
     module: {{ $module }}
-    instance: {{ $.Values.deployment.name }}
+    instance: instance-{{ $.Values.deployment.name }}
 {{- end }}
