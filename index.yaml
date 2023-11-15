@@ -11,6 +11,16 @@ entries:
     urls:
     - https://github.com/ebudan/ruori/releases/download/helloworld-0.1.0/helloworld-0.1.0.tgz
     version: 0.1.0
+  ses:
+  - apiVersion: v2
+    created: "2023-11-15T11:41:20.591773764Z"
+    description: A Helm chart for building a SES app deployment compatible with traefik-rproxy-le-1
+    digest: 96e65bc255cb591224655af3b84de75fa233f903c786ebdba3f0128cc7c0a96c
+    name: ses
+    type: application
+    urls:
+    - https://github.com/ebudan/ruori/releases/download/ses-0.1.0/ses-0.1.0.tgz
+    version: 0.1.0
   tnssca:
   - apiVersion: v2
     created: "2023-10-09T13:45:29.064014401Z"
@@ -38,4 +48,4 @@ entries:
     urls:
     - https://github.com/ebudan/ruori/releases/download/traefik-rproxy-le-1-0.1.0/traefik-rproxy-le-1-0.1.0.tgz
     version: 0.1.0
-generated: "2023-10-20T12:40:33.808789271Z"
+generated: "2023-11-15T11:41:20.788600218Z"
