@@ -21,6 +21,7 @@ env:
   OCI_EXE: '{{.OCI_EXE | default "podman"}}'
 vars:
   CHART: ruori/traefik-rproxy-le-1
+  CHARTLOCAL: ./charts/traefik-rproxy-le-1
 
 tasks:
   default:
@@ -31,7 +32,9 @@ tasks:
     cmds:
       - rm -rf ./secrets
 
-  generate-deployment:
+  helm-gen-template:
+    internal: true
+    dir: '{{.USER_WORKING_DIR}}'
     desc: Runs helm to generate a Traefik LE 1-node rproxy.
     vars: 
       OUT:
@@ -45,12 +48,27 @@ tasks:
           --set traefik.persistence.hostpath="{{.HOSTPATH}}" \
           --set traefik.instanceLabelOverride="{{.INSTANCE}}" \
           --set traefik.namespaceOverride="{{.INSTANCE}}" \
-          --set traefik.certResolvers.letsencrypt.email="{{.LEEMAIL}}" \
-          {{.INSTANCE}} {{.CHART}} >{{.OUT}}
-      - sed -i 's/--api.dashboard=true/--api.dashboard=false/g' {{.OUT}}
-      - sed -i 's/--metrics.prometheus=true/--metrics.prometheus=false/g' {{.OUT}}
+          --set traefik.certificatesResolvers.letsencrypt.acme.email="{{.LEEMAIL}}" \
+          {{.INSTANCE}} {{.TCHART}} >{{.OUT}}
+      - |
+        {{if eq OS "linux"}}sed{{else if eq OS "darwin"}}gsed{{end}} -i 's/--api.dashboard=true/--api.dashboard=false/g' {{.OUT}}
+      - |
+        {{if eq OS "linux"}}sed{{else if eq OS "darwin"}}gsed{{end}} -i 's/--metrics.prometheus=true/--metrics.prometheus=false/g' {{.OUT}}
       - >
         echo -e "Done. Remember to perform the following tasks:\n
+        - apply the CRDs on your cluster\n
         - deploy {{.OUT}} on your cluster\n
-        - create $HOSTPATH on cluster host(s)\n"
+        - create $HOSTPATH on cluster host(s)\n
+        - configure your DNS to point to your added hostname\n"
 
+  generate-deployment:
+    desc: Generate a deployment descriptor for Traefik LE 1-node rproxy.
+    cmds:
+      - task: helm-gen-template
+        vars: { TCHART: '{{.CHART}}' }
+
+  test-local:
+    desc: Use local files to test the Traefik LE 1-node rproxy chart.
+    cmds:
+      - task: helm-gen-template
+        vars: { TCHART: '{{.CHARTLOCAL}}' }

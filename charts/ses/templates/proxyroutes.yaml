@@ -1,7 +1,7 @@
 ---
 # Having problems using tlsoptions from default namespace. 
 # Using a local version always worked prior to v2.10.
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: TLSOption
 metadata:
   labels:
@@ -9,13 +9,13 @@ metadata:
   name: tlsoptions
   namespace: {{ .Values.deployment.namespace }}
 spec:
-  preferServerCipherSuites: true
+  #EB20241210-1 preferServerCipherSuites: true
   sniStrict: false
   minVersion: VersionTLS12
 {{- range $name,$conf := .Values.modules.core}}
 {{- if $conf.rproxy }}
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 {{- if $conf.rproxy.passthrough }}
 kind: IngressRouteTCP
 {{- else }}

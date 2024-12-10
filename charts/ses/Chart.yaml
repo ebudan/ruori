@@ -1,4 +1,4 @@
-apiVersion: v2
+apiVersion: v3
 name: ses
 description: A Helm chart for building a SES app deployment compatible with traefik-rproxy-le-1
 type: application

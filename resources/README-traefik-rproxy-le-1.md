@@ -11,10 +11,12 @@ To deploy a multiple container app along SES guidelines, see [README-ses.md].
 
 ### Traefik custom resources
 
-The [traefik custom resource definitions](https://doc.traefik.io/traefik/reference/dynamic-configuration/kubernetes-crd/#definitions) must be deployed on the `K*S` instance. We provide a snapshot from 2023-10-20 here: 
+We use Traefic v3.2.1. 
 
-* [kubernetes-crd-definition-v1.yml](kubernetes-crd-definition-v1.yml)
-* [kubernetes-crd-rbac.yml](kubernetes-crd-rbac.yml)
+The [traefik custom resource definitions](https://github.com/traefik/traefik/tree/v3.2.1/docs/content/reference/dynamic-configuration) must be deployed on the `K*S` instance. We provide a renamed snapshot of the relevant files from 2024-12-10 here: 
+
+* [kubernetes-crd-definition-v1-v3.2.1.yml](kubernetes-crd-definition-v1-v3.2.1.yml)
+* [kubernetes-crd-rbac-v3.2.1.yml](kubernetes-crd-rbac-v3.2.1.yml)
 
 To apply on the server:
 
@@ -44,9 +46,9 @@ If you need manual intervention, this is what the Taskfile does:
     --set traefik.certResolvers.letsencrypt.email=$EMAIL \
     $TRAEFIK_INSTANCE ruori/traefik-rproxy-le-1 >deploy-$TRAEFIK_INSTANCE.yml
 
-We use `$TRAEFIK_INSTANCE` as a unique ID for the rproxy and its namespace.  
 Note that we must specify the overrides as above; the traefik template generates unreliable defaults if we don't.  
-This `$TRAEFIK_INSTANCE` value will be required when you deploy an app with other charts (ruori/helloworld, ruori/ses).  
+
+We use `$TRAEFIK_INSTANCE` as a unique ID for the rproxy and its namespace. One rproxy can serve multiple SES application instances.  This `$TRAEFIK_INSTANCE` value will be required when you deploy an app with other charts (ruori/helloworld, ruori/ses).  
 At this writing, our default installation uses `TRAEFIK_INSTANCE=traefik-ingress`. Your setup may vary.  
 
 The `$HOSTPATH` must be a prepared master-node location to store Let's Encrypt certificates. 
@@ -57,6 +59,7 @@ You may further want to adjust `charts/traefik-rproxy-le-1/values.yaml` settings
 
     --set traefik.logs.general.level=ERROR
 
+Our `Taskfile-traefik-rproxy-le-1.yml` also provides a `test-local` task that can be run in the parent directory and loads local files for testing before committing.
 
 
 ## Adding accessible ports
@@ -68,8 +71,4 @@ This chart provides ingress 443 (websecure) and additional access to ports 8883 
 
 This chart sets Traefik up as a Let's Encrypt capable reverse-proxy/ingress, BUT certificate persistence combined 
 with the non-commercial traefik version restrict our options - it is not HA, but instead limited to the master node.
-
-## To Do
-
-- Prometheus doesn't get disabled (Helm empty override propagation bug/feature)
 

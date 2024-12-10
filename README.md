@@ -28,3 +28,7 @@ To generate a templated deployment, you will usually perform
 
 Since the reusable templates require several variables, a Taskfile example will usually be provided. 
 
+
+## Change log
+
+- 2024-12-10 updated to Traefik v3.2.1, with appropriate changes in charts in this repo

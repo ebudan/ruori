@@ -11,9 +11,9 @@ metadata:
   name: {{ .Values.namespace }}
 {{- end }}
 ---
-# Having problems using tlsoptions from default namespace. 
+# Having problems using tlsoptions from default namespace.
 # Using a local version always worked prior to v2.10.
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: TLSOption
 metadata:
   annotations:
@@ -265,7 +265,7 @@ spec:
   - Ingress
   - Egress
 ---
-apiVersion: traefik.containo.us/v1alpha1
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   annotations:
@@ -273,7 +273,7 @@ metadata:
     # # The following is what tells traefik to forward an entry point here
     # traefik.ingress.kubernetes.io/router.entrypoints: {{ .Values.traefik.entrypoint }}
     # # The following is mentioned here: https://doc.traefik.io/traefik/https/tls/
-    # traefik.ingress.kubernetes.io/router.tls.options: {{ .Values.namespace }}-tlsoptions@kubernetescrd    
+    # traefik.ingress.kubernetes.io/router.tls.options: {{ .Values.namespace }}-tlsoptions@kubernetescrd
   labels:
     instance: instance-{{ .Values.name }}
   name: proxy-{{ .Values.traefik.entrypoint }}
@@ -291,7 +291,7 @@ spec:
       port: {{ .Values.services.webservice.arbitraryport }}
   tls:
     certResolver: {{ .Values.traefik.certresolver }}
-    options: 
+    options:
       name: tlsoptions
       namespace: {{ .Values.namespace }}
     # OR: passthrough: true  if passing traffic to encrypting service
