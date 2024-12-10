@@ -33,6 +33,21 @@ entries:
     - https://github.com/ebudan/ruori/releases/download/tnssca-0.1.0/tnssca-0.1.0.tgz
     version: 0.1.0
   traefik-rproxy-le-1:
+  - apiVersion: v3
+    appVersion: 2.0.2
+    created: "2024-12-10T15:58:41.456621923Z"
+    dependencies:
+    - name: traefik
+      repository: https://traefik.github.io/charts
+      version: 33.1.0
+    description: Recipe for Traefik as DaemonSet with namespaces, LetsEncrypt as front-end
+      for non-scaling apps.
+    digest: 8db4b591e6eaa81489582f2f73d286a92342d180528566fddad36406d49d3624
+    name: traefik-rproxy-le-1
+    type: application
+    urls:
+    - https://github.com/ebudan/ruori/releases/download/traefik-rproxy-le-1-0.2.0/traefik-rproxy-le-1-0.2.0.tgz
+    version: 0.2.0
   - apiVersion: v2
     appVersion: 1.16.0
     created: "2023-10-20T12:40:33.808780371Z"
@@ -48,4 +63,4 @@ entries:
     urls:
     - https://github.com/ebudan/ruori/releases/download/traefik-rproxy-le-1-0.1.0/traefik-rproxy-le-1-0.1.0.tgz
     version: 0.1.0
-generated: "2023-11-15T11:41:20.788600218Z"
+generated: "2024-12-10T15:58:41.456637081Z"
