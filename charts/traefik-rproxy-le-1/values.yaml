@@ -4,7 +4,7 @@ traefik:
   enabled: true
   image:
     # The traefik image to use. 
-    tag: "v3.2.1"
+    tag: "v3.2.2"
 
   # EB: specify ERROR for production:
   logs:
