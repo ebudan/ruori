@@ -37,7 +37,7 @@ traefik:
   # Deploy the ingress on master only.
   # TODO: confirm.  
   nodeSelector: 
-    node-role.kubernetes.io/master: "true"
+    node-role.kubernetes.io/control-plane: "true"
 
   # EB: using Traefik's CRD kubernetes model. 
   providers:
