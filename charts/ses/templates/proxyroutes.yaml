@@ -5,11 +5,11 @@ apiVersion: traefik.io/v1alpha1
 kind: TLSOption
 metadata:
   labels:
-    instance: instance-helloworld
+    instance: instance-{{ $.Values.deployment.name }}
   name: tlsoptions
   namespace: {{ .Values.deployment.namespace }}
 spec:
-  #EB20241210-1 preferServerCipherSuites: true
+  preferServerCipherSuites: true
   sniStrict: false
   minVersion: VersionTLS12
 {{- range $name,$conf := .Values.modules.core}}
