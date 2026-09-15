@@ -31,4 +31,5 @@ Since the reusable templates require several variables, a Taskfile example will 
 
 ## Change log
 
+- 2026-09-15 updated input values.yaml format to help support per-module exposed ports, bump ses and traefik-rproxy-le-1 to v0.3.0
 - 2024-12-10 updated to Traefik v3.2.1, with appropriate changes in charts in this repo
