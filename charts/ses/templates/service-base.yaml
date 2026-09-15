@@ -10,11 +10,13 @@ metadata:
     name: {{ $module }}
     module: {{ $module }}
 spec:
-#  clusterIP: None # for headless!
+  #  clusterIP: None # for headless!
   ports:
-  - protocol: TCP
-    port: {{ required "missing containerPort" $config.ports.containerPort }}{{/* port setup still WIP */}}
-    targetPort: {{ required "missing containerPort" $config.ports.containerPort }}
+  {{- range $config.entryPoints }}
+    - protocol: TCP
+      port: {{ required "missing containerPort" .containerPort }}
+      targetPort: {{ required "missing containerPort" .containerPort }}
+  {{- end }}
   selector:
     module: {{ $module }}
     instance: instance-{{ $.Values.deployment.name }}

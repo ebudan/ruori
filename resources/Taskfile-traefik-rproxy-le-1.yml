@@ -40,7 +40,7 @@ tasks:
       OUT:
         sh: echo "{{.USER_WORKING_DIR}}/deploy-${INSTANCE}-$(date +%Y%m%dT%H%M%S%z).yaml"
     requires:
-      vars: [INSTANCE,LEEMAIL,HOSTPATH]
+      vars: [INSTANCE,LEEMAIL,HOSTPATH,VALUES]
     cmds:
       - echo "Generating $OUT..."
       - >
@@ -49,6 +49,7 @@ tasks:
           --set traefik.instanceLabelOverride="{{.INSTANCE}}" \
           --set traefik.namespaceOverride="{{.INSTANCE}}" \
           --set traefik.certificatesResolvers.letsencrypt.acme.email="{{.LEEMAIL}}" \
+          --values="{{.VALUES}}"\
           {{.INSTANCE}} {{.TCHART}} >{{.OUT}}
       - |
         {{if eq OS "linux"}}sed{{else if eq OS "darwin"}}gsed{{end}} -i 's/--api.dashboard=true/--api.dashboard=false/g' {{.OUT}}

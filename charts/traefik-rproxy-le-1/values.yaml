@@ -116,23 +116,23 @@ traefik:
         default: false
       exposedPort: 9100
       protocol: TCP
-    mqtt:
-      expose: 
-        default: true
-      pass: true
-      port: 8883
-      exposedPort: 8883
-      hostPort: 8883
-      # containerPort: 8883
-      protocol: TCP
-    autentica:
-      expose: 
-        default: true
-      port: 9443
-      exposedPort: 9443
-      hostPort: 9443
-      # containerPort: 9443
-      protocol: TCP
+    # mqtt:
+    #   expose: 
+    #     default: true
+    #   pass: true
+    #   port: 8883
+    #   exposedPort: 8883
+    #   hostPort: 8883
+    #   # containerPort: 8883
+    #   protocol: TCP
+    # autentica:
+    #   expose: 
+    #     default: true
+    #   port: 9443
+    #   exposedPort: 9443
+    #   hostPort: 9443
+    #   # containerPort: 9443
+    #   protocol: TCP
 
   # EB: we seem to need a nameable tlsoptions instance.
   tlsOptions:

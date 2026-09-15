@@ -12,15 +12,18 @@ spec:
   preferServerCipherSuites: true
   sniStrict: false
   minVersion: VersionTLS12
-{{- range $name,$conf := .Values.modules.core}}
-{{- if $conf.rproxy }}
+{{- /* user and core modules handled identically, so merge with some sprig magic */ -}}
+{{- range $name, $conf := merge (dict) (default (dict) .Values.modules.core) (default (dict) .Values.modules.user) }}
+{{- range $conf.entryPoints }}
+{{- /* - if .map */ -}}
+{{- if and .name .hostPort }}
 ---
 apiVersion: traefik.io/v1alpha1
-{{- if $conf.rproxy.passthrough }}
+{{- if .passthrough }}
 kind: IngressRouteTCP
 {{- else }}
 kind: IngressRoute
-{{- end}}
+{{- end }}
 metadata:
   # annotations:
   #   traefik.ingress.kubernetes.io/router.entrypoints: {{$name}}
@@ -30,9 +33,9 @@ metadata:
   namespace: {{ $.Values.deployment.namespace }}
 spec:
   entryPoints:
-    - {{$conf.rproxy.entrypoint}}
+    - {{ .name }}
   tls:
-  {{- if $conf.rproxy.passthrough }}
+  {{- if .passthrough }}
     passthrough: true
   {{- else }}
     # as defined in traefik chart elsewhere...
@@ -42,7 +45,7 @@ spec:
       namespace: {{ $.Values.deployment.namespace }}
   {{- end }}
   routes:
-      {{- if $conf.rproxy.passthrough }}
+      {{- if .passthrough }}
     - match: HostSNI(`{{ $.Values.deployment.host }}`)
       {{- else }}
     - kind: Rule
@@ -51,6 +54,7 @@ spec:
       services:
         - name: {{ $name }}
           namespace: {{ $.Values.deployment.namespace }}
-          port: {{ required "missing containerPort" $conf.ports.containerPort }} # We use containerPort for service as well as containers for some degree of simplicity..
+          port: {{ required "missing containerPort" .containerPort }} # We use containerPort for service as well as containers for some degree of simplicity..
+{{- end }}
 {{- end }}
 {{- end }}

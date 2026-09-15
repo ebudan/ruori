@@ -1,0 +1,22 @@
+---
+templateTarget:
+  repository: github.com/ebudan/ruori
+  chart: traefik-rproxy-le-1
+  version: 0.3.0
+
+traefik:
+  ports:
+    mqtt:
+      expose:
+        default: true
+      pass: true
+      port: 8883
+      exposedPort: 8883
+      protocol: TCP
+    autentica:
+      expose:
+        default: true
+      pass: false
+      port: 9443
+      exposedPort: 9443
+      protocol: TCP

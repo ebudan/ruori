@@ -1,9 +1,9 @@
-apiVersion: v3
+apiVersion: v1
 name: traefik-rproxy-le-1
 description: Recipe for Traefik as DaemonSet with namespaces, LetsEncrypt as front-end for non-scaling apps.
 type: application
-version: 0.2.2
-appVersion: "2.0.2"
+version: 0.3.0
+appVersion: "2.1.2"
 dependencies:
 - name: traefik
   version: "33.2.1"

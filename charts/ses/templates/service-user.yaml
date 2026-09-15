@@ -10,10 +10,13 @@ metadata:
     name: {{ $module }}
     module: {{ $module }}
 spec:
-  ports:{{/* for now only a single port actually supported! */}}
-  - protocol: TCP
-    port: {{ or $config.ports.containerPort 9191 }}
-    targetPort: {{ or $config.ports.containerPort 9191 }}
+  # user services have default 9191 open to other modules only
+  ports:
+  {{- range $config.entryPoints }}
+    - protocol: TCP
+      port: {{ or .containerPort 9191 }}
+      targetPort: {{ or .containerPort 9191 }}
+  {{- end }}
   selector:
     module: {{ $module }}
     instance: instance-{{ $.Values.deployment.name }}
