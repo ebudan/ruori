@@ -12,6 +12,15 @@ entries:
     - https://github.com/ebudan/ruori/releases/download/helloworld-0.1.0/helloworld-0.1.0.tgz
     version: 0.1.0
   ses:
+  - apiVersion: v1
+    created: "2026-09-15T20:32:26.27400707Z"
+    description: A Helm chart for building a SES app deployment compatible with traefik-rproxy-le-1
+    digest: 1c901605799f3e3e5496f9215828875dd66ff004219f3f3c634f295880a17763
+    name: ses
+    type: application
+    urls:
+    - https://github.com/ebudan/ruori/releases/download/ses-0.3.0/ses-0.3.0.tgz
+    version: 0.3.0
   - apiVersion: v3
     created: "2025-02-28T10:59:36.557333669Z"
     description: A Helm chart for building a SES app deployment compatible with traefik-rproxy-le-1
@@ -42,6 +51,17 @@ entries:
     - https://github.com/ebudan/ruori/releases/download/tnssca-0.1.0/tnssca-0.1.0.tgz
     version: 0.1.0
   traefik-rproxy-le-1:
+  - apiVersion: v1
+    appVersion: 2.1.2
+    created: "2026-09-15T20:32:26.543341032Z"
+    description: Recipe for Traefik as DaemonSet with namespaces, LetsEncrypt as front-end
+      for non-scaling apps.
+    digest: e37820586c684bf46fd643217b64f01bc05ca05e91354761d70f5239433e7016
+    name: traefik-rproxy-le-1
+    type: application
+    urls:
+    - https://github.com/ebudan/ruori/releases/download/traefik-rproxy-le-1-0.3.0/traefik-rproxy-le-1-0.3.0.tgz
+    version: 0.3.0
   - apiVersion: v3
     appVersion: 2.0.2
     created: "2024-12-16T10:00:20.999709115Z"
@@ -102,4 +122,4 @@ entries:
     urls:
     - https://github.com/ebudan/ruori/releases/download/traefik-rproxy-le-1-0.1.0/traefik-rproxy-le-1-0.1.0.tgz
     version: 0.1.0
-generated: "2025-02-28T10:59:36.557354889Z"
+generated: "2026-09-15T20:32:26.543359699Z"
